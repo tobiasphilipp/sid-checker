@@ -20,8 +20,6 @@ with
   SPARK_Mode => Off
 is
 
-   F          : Sid.Formula_Type;
-   P          : Sid.Proof_Type;
    Result     : Sid.Result_Type;
 
    RV_Success : constant := 0;
@@ -29,20 +27,40 @@ is
 
 begin
 
-   if Argument_Count /= 2 then
-      Ada.Text_IO.Put_Line ("cnf proof");
+   if Argument_Count /= 3 then
+      Ada.Text_IO.Put_Line ("type cnf proof");
       Set_Exit_Status (RV_Failure);
       return;
    end if;
 
    declare
-      File_Name  : String := Argument (1);
-      Proof_Name : String := Argument (2);
+      Proof_Type : String := Argument (1);
+      File_Name  : String := Argument (2);
+      Proof_Name : String := Argument (3);
    begin
-      Sid.IO.Read_CNF (File_Name, F);
-      Sid.IO.Read_Proof (Proof_Name, P);
 
-      Sid.Check (F, P, Result);
+      if Proof_Type = "resolution" then
+	 declare
+	    F : Sid.Formula_Type;
+	    P : Sid.Proof_Type;
+	 begin
+	    Sid.IO.Read_CNF (File_Name, F);
+	    Sid.IO.Read_Proof (Proof_Name, P);
+
+	    Sid.Check_Resolution_Proof (F, P, Result);
+	 end;
+
+      elsif Proof_Type = "rup" then
+	 declare
+	    F : Sid.Formula_Type;
+	    P : Sid.Formula_Type;
+	 begin
+	    Sid.IO.Read_CNF (File_Name, F);
+	    Sid.IO.Read_CNF (Proof_Name, P);
+
+	    Sid.Check_RUP_Proof (F, P, Result);
+	 end;
+      end if;
 
       case Result.Kind is
 	 when Sid.Success =>
