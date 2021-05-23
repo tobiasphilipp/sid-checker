@@ -83,9 +83,95 @@ is
 
    -- --------------------------------------------------------------------------
 
+   procedure Test_Assignment (T : in out Test_Cases.Test_Case'Class)
+   is
+      A : Assignment_Type;
+      C : Clause_Type (0 .. 2) := (1, 2, -3);
+      D : Clause_Type (0 .. 2) := (1, -2, 3);
+      E : Clause_Type (0 .. 1) := (-2, 3);
+   begin
+      A := Assignment_Vector.Add (A, 2);
+      A := Assignment_Vector.Add (A, -3);
+
+      Assert (not Is_True (A, 1),
+	      "1 is not true under (2 -3)");
+
+      Assert (Is_True (A, -3),
+	      "-3 is true under (2 -3)");
+
+      Assert (not Is_False (A, 1),
+	      "1 is not false under (2 -3)");
+
+      Assert (Is_False (A, 3),
+	      "3 is false under (2 -3)");
+
+      Assert (Unit (D, A, 1),
+	      "[1] is the unit clause of [1, -2, 3] w.r.t assignment (2 -3)");
+
+      Assert (Is_Empty_Clause (E, A),
+	      "must be empty clause");
+   end Test_Assignment;
+
+   -- --------------------------------------------------------------------------
+
+   procedure Test_RUP (T : in out Test_Cases.Test_Case'Class)
+   is
+      C1 : Clause_Type (0 .. 2) := (1, 2, -3);
+      C2 : Clause_Type (0 .. 2) := (1, 2, 3);
+
+      F : Formula_Type;
+
+      D : Clause_Type (0 .. 1) := (1, 2);
+   begin
+
+      F := Clause_Vector.Add (F, C1);
+      F := Clause_Vector.Add (F, C2);
+
+      Assert (Is_RUP (F, D),
+	      "D must be RUP");
+
+   end Test_RUP;
+
+   -- --------------------------------------------------------------------------
+
+   procedure Test_RUP_Check_Success (T : in out Test_Cases.Test_Case'Class)
+   is
+      C1 : Clause_Type (0 .. 1) := (1, 2);
+      C2 : Clause_Type (0 .. 1) := (1, -2);
+      C3 : Clause_Type (0 .. 1) := (-1, 2);
+      C4 : Clause_Type (0 .. 1) := (-1, -2);
+
+      F : Formula_Type;
+
+      D1 : Clause_Type (0 .. 0) := (others => 1);
+      D2 : Clause_Type := Empty_Clause;
+
+      P : Formula_Type;
+
+      Result : Result_Type;
+   begin
+
+      F := Clause_Vector.Add (F, C1);
+      F := Clause_Vector.Add (F, C2);
+      F := Clause_Vector.Add (F, C3);
+      F := Clause_Vector.Add (F, C4);
+
+      P := Clause_Vector.Add (P, D1);
+      P := Clause_Vector.Add (P, D2);
+
+      Check_RUP_Proof (F, P, Result);
+
+      Assert (Result.Kind = Success,
+	     "P is a correct proof");
+
+   end Test_RUP_Check_Success;
+
+
+   -- --------------------------------------------------------------------------
+
    -- We do not show completeness; this should be demonstrated by real world
    -- examples
-   procedure Test_Check_Success (T : in out Test_Cases.Test_Case'Class)
+   procedure Test_Check_Resolution_Success (T : in out Test_Cases.Test_Case'Class)
    is
       F : Formula_Type;
       P : Proof_Type;
@@ -154,11 +240,11 @@ is
       Create_Formula;
       Create_Proof;
 
-      Check (F, P, R);
+      Check_Resolution_Proof (F, P, R);
 
       Assert (R.Kind = Success,
 	     "P is a correct proof");
-   end Test_Check_Success;
+   end Test_Check_Resolution_Success;
 
    -- --------------------------------------------------------------------------
 
@@ -178,8 +264,23 @@ is
 
       Registration.Register_Routine
 	(T,
-	 Test_Check_Success'Access,
-	 "Test successfull checking");
+	 Test_Assignment'Access,
+	 "Test assignment with clause handling");
+
+      Registration.Register_Routine
+	(T,
+	 Test_RUP'Access,
+	 "Test RUP (reverse unit propagation)");
+
+      Registration.Register_Routine
+	(T,
+	 Test_Check_Resolution_Success'Access,
+	 "Test successfull resolution proof checking");
+
+      Registration.Register_Routine
+	(T,
+	 Test_RUP_Check_Success'Access,
+	 "Test successfull RUP proof checking");
    end Register_Tests;
 
    -- --------------------------------------------------------------------------

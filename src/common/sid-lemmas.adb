@@ -30,4 +30,26 @@ is
      (F, G, H : Formula_Type)
    is null;
 
+   procedure Equivalent_Transitivity
+     (F : Formula_Type;
+      A1, A2, A3 : Assignment_Type)
+   is null;
+
+   procedure RUP_Lemma
+     (A  : in Assignment_Type;
+      Ap : in Assignment_Type;
+      F  : in Formula_Type;
+      C  : in Clause_Type)
+   is null;
+
+   procedure Propagate_Lemma
+     (A  : in Assignment_Type;
+      Ap : in Assignment_Type;
+      F  : in Formula_Type)
+   is null;
+
+   procedure Equivalent_Reflexive
+     (F : Formula_Type;
+      A : Assignment_Type)
+   is null;
 end Sid.Lemmas;

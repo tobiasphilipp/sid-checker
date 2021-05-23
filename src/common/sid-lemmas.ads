@@ -11,6 +11,7 @@
 
 package Sid.Lemmas
   with SPARK_Mode => On,
+  Annotate => (GNATprove, Terminating),
   Ghost
 is
    use type Literal_Type;
@@ -41,5 +42,39 @@ is
    with
      Pre  => Equisatisfiable (F, G) and then Equisatisfiable (G, H),
      Post => Equisatisfiable (F, H);
+
+   procedure Equivalent_Transitivity
+     (F : Formula_Type;
+      A1, A2, A3 : Assignment_Type)
+   with
+     Pre => Equivalent (A1, A2, F, F) and then Equivalent (A2, A3, F, F),
+     Post =>  Equivalent (A1, A3, F, F),
+     Ghost;
+
+   procedure Equivalent_Reflexive
+     (F : Formula_Type;
+      A : Assignment_Type)
+   with
+     Post =>  Equivalent (A, A, F, F),
+     Ghost;
+
+
+   -- A /\ F   EQUIV  A[L] /\ F if L is propagates from F and A
+   procedure Propagate_Lemma
+     (A  : in Assignment_Type;
+      Ap : in Assignment_Type;
+      F  : in Formula_Type)
+     with Pre => Assignment_Vector.Last (A) < Positive'Last and then Propagate (A, Ap, F),
+     Post => Equivalent (A, Ap, F, F),
+     Ghost;
+
+   procedure RUP_Lemma
+     (A  : in Assignment_Type;
+      Ap : in Assignment_Type;
+      F  : in Formula_Type;
+      C  : in Clause_Type)
+   with Pre => Has_Empty_Clause (F, Ap) and Equivalent (A, Ap, F, F) and Assignment_Clause_Rel (A, C),
+     Post => Equisatisfiable (F, Clause_Vector.Add (F, C)),
+     Ghost;
 
 end Sid.Lemmas;
