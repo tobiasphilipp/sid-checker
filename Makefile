@@ -11,12 +11,14 @@
 
 CORES=2
 
+
+
 build:
 	gprbuild -Pchecker -p -we -Xver=debug
 	gprbuild -Ptest
 
 test:
-	gprbuild -Ptest -p -we
+	gprbuild -Ptest -p -we -bargs -Es
 	bin/test
 
 release:
@@ -33,7 +35,7 @@ clean:
 	rm -rf bin
 
 proof: build
-	gnatprove -Pchecker -Xver=release --timeout=60 -j$(CORES) --level=4 --proof=progressive --prover=z3,cvc4,altergo
+	gnatprove -Pchecker -Xver=release --timeout=15 -j$(CORES) --level=4 --proof=progressive --prover=z3,cvc4,altergo
 
 
 .PHONY: clean build proof release release_win

@@ -14,6 +14,8 @@ with Ada.Command_Line; use Ada.Command_Line;
 
 with Sid;              use Sid;
 with Sid.IO;           use Sid.IO;
+with Sid_DB;
+with Sid.Watcher;
 
 procedure Checker
 with

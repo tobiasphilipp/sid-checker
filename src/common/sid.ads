@@ -34,9 +34,11 @@ is
    -- missing support for advanced relaxed initialization.
    Magic_Literal : constant Literal_Type := 123;
 
+   Max_Clause_Size : constant Natural := 2 ** 16;
+
    type Clause_Type is array (Natural range <>) of Literal_Type
      with Dynamic_Predicate => Clause_Type'First = 0
-     and then Clause_Type'Last < 2 ** 16;
+     and then Clause_Type'Last < Max_Clause_Size;
 
    Empty_Clause : constant Clause_Type (0 .. -1)  := (others => Magic_Literal);
 

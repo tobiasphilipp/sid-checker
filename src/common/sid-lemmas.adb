@@ -12,7 +12,7 @@
 package body Sid.Lemmas
   -- We do not provide proofs and turns off SPARK mode in this package
   -- to make the VC report more clear.
-  -- with SPARK_Mode => Off
+  with SPARK_Mode => Off
 is
    procedure Resolvent_Redundancy
      (F : Formula_Type;

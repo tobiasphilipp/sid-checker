@@ -16,6 +16,8 @@ with AUnit.Assertions;   use AUnit.Assertions;
 with Ada.Text_IO;
 
 with Sid;                use Sid;
+with Sid.Watcher;
+with Sid_DB;             use Sid_DB;
 
 package body Sid_Tests
   with SPARK_Mode => Off
@@ -166,6 +168,104 @@ is
 
    end Test_RUP_Check_Success;
 
+   -- --------------------------------------------------------------------------
+
+   procedure Test_Clause_DB (T : in out Test_Cases.Test_Case'Class)
+   is
+      C1 : Clause_Type (0 .. 1) := (1, 2);
+      C2 : Clause_Type (0 .. 1) := (1, -2);
+
+      R1 : Insert_Result_Type;
+      R2 : Insert_Result_Type;
+
+
+   begin
+
+      Insert (C1, R1);
+      -- 2 1 2
+
+      Assert (R1.Success, "clause addition must be successful");
+      Assert (R1.Index = 1, "correct index");
+
+
+      Insert (C2, R2);
+      -- 2 1 2 2 1 -2
+
+      Assert (R2.Success, "clause addition must be successful");
+      Assert (R2.Index = 4, "correct index");
+
+
+      Assert (Element (R1.Index) = C1, "Insert and Get works correctly");
+      Assert (Element (R2.Index) = C2, "Insert and Get works correctly");
+
+      --  declare
+      --  	 Indices : Index_Array_Model_Type := Get_Clause_Indices (DB);
+      --  begin
+      --  	 Assert (Indices (Indices'First) = 1, "correct get clause indices");
+      --  	 Assert (Indices (Indices'First + 1) = 4, "correct get clause indices");
+      --  	 Assert (Indices'Last = Indices'First + 1, "correct get clause indices length");
+      --  end;
+
+      for I in 0 .. 1000
+      loop
+	 declare
+	    Rx : Insert_Result_Type;
+	 begin
+	    Insert (C1, Rx);
+	    Assert (Element (R2.Index) = C2, "Insert and Get works correctly");
+	 end;
+      end loop;
+
+   end Test_Clause_DB;
+
+   -- --------------------------------------------------------------------------
+
+   procedure Test_Watcher (T : in out Test_Cases.Test_Case'Class)
+   is
+      Success : Boolean;
+
+      C1 : Clause_Type (0 .. 2) := (1, 2, 4);
+      C2 : Clause_Type (0 .. 2) := (4, 5, 6);
+
+      R1 : Insert_Result_Type;
+      R2 : Insert_Result_Type;
+
+      A1 : Assignment_Type;
+   begin
+      Sid_DB.Clear;
+
+      Insert (C1, R1);
+      Insert (C2, R2);
+
+      Sid.Watcher.Resize (10, Success);
+      Assert (Success, "resizing must be successful");
+
+      Sid.Watcher.Insert (C1 (0), R1.Index, Success);
+      Assert (Success, "inserting into watcher must be successful");
+
+      Sid.Watcher.Insert (C1 (1), R1.Index, Success);
+      Assert (Success, "inserting into watcher must be successful");
+
+
+      Sid.Watcher.Insert (C2 (0), R2.Index, Success);
+      Assert (Success, "inserting into watcher must be successful");
+
+      Sid.Watcher.Insert (C2 (1), R2.Index, Success);
+      Assert (Success, "inserting into watcher must be successful");
+
+      Sid.Watcher.Print;
+
+      Ada.Text_IO.Put_Line ("============");
+
+      A1 := Assignment_Vector.Add (A1, -4);
+      A1 := Assignment_Vector.Add (A1, -5);
+
+      Sid.Watcher.Propagate (A1, Success);
+      Assert (Success, "propagation must be successful");
+
+      Sid.Watcher.Print;
+
+   end Test_Watcher;
 
    -- --------------------------------------------------------------------------
 
@@ -266,6 +366,16 @@ is
 	(T,
 	 Test_Assignment'Access,
 	 "Test assignment with clause handling");
+
+      Registration.Register_Routine
+	(T,
+	 Test_Clause_DB'Access,
+	 "Test clause database");
+
+      Registration.Register_Routine
+	(T,
+	 Test_Watcher'Access,
+	 "Test two watched literal scheme");
 
       Registration.Register_Routine
 	(T,
